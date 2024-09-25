@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="1Canvas" width="200" height="100" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<canvas id="2Canvas" width="200" height="100" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<canvas id="3Canvas" width="200" height="100" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<canvas id="4Canvas" width="200" height="100" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<canvas id="5Canvas" width="200" height="100" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<script>
+// Initialize WebGL for each canvas
+function initWebGL(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const gl = canvas.getContext('webgl');
+
+  if (!gl) {
+    console.log('WebGL not supported, using experimental-webgl');
+    return canvas.getContext('experimental-webgl');
+  }
+  return gl;
+}
+
+// Create shaders
+function createShaders(gl) {
+  const vsSource = `
+    attribute vec4 aVertexPosition;
+    void main(void) {
+      gl_Position = aVertexPosition;
+      gl_PointSize = 5.0;
+    }
+  `;
+
+  const fsSource = `
+    void main(void) {
+      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);  // Red color
+    }
+  `;
+
+  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+  const shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
+
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+    return null;
+  }
+  return shaderProgram;
+}
+
+// Load a shader program from a source
+function loadShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+}
+
+// Draw the scene
+function drawScene(gl, shaderProgram, drawMode) {
+  const positions = [
+    0.0,  0.0,    // Center
+    -0.5, -0.5,   // Bottom-left
+    0.5,  0.5,    // Top-right
+    0.1,  0.3,    // Additional point
+    -0.5, 0.5     // Top-left
+  ];
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear with white
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  const programInfo = {
+    attribLocations: {
+      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+    },
+    program: shaderProgram,
+  };
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.vertexAttribPointer(
+    programInfo.attribLocations.vertexPosition,
+    2, // number of components per vertex (x, y)
+    gl.FLOAT,
+    false,
+    0,
+    0
+  );
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+  gl.useProgram(programInfo.program);
+
+  // Draw the scene based on the provided draw mode
+  gl.drawArrays(drawMode, 0, positions.length / 2); // Update to use the length of positions
+}
+
+// Initialize WebGL for each canvas
+const gl1 = initWebGL('1Canvas');
+const shaderProgram1 = createShaders(gl1);
+drawScene(gl1, shaderProgram1, gl1.POINTS);  // Use gl.POINTS for the first canvas
+
+const gl2 = initWebGL('2Canvas');
+const shaderProgram2 = createShaders(gl2);
+drawScene(gl2, shaderProgram2, gl2.LINES);   // Use gl.LINES for the second canvas
+
+const gl3 = initWebGL('3Canvas');
+const shaderProgram3 = createShaders(gl3);
+drawScene(gl3, shaderProgram3, gl3.LINE_STRIP);  // Use gl.LINE_STRIP for the third canvas
+
+// Initialize WebGL for the fourth canvas (Triangle Fan)
+const gl4 = initWebGL('4Canvas');
+const shaderProgram4 = createShaders(gl4);
+drawScene(gl4, shaderProgram4, gl4.TRIANGLE_FAN);  // Use gl.TRIANGLE_FAN for the fourth canvas
+
+// Initialize WebGL for the fifth canvas (Triangle Strip)
+const gl5 = initWebGL('5Canvas');
+const shaderProgram5 = createShaders(gl5);
+drawScene(gl5, shaderProgram5, gl5.TRIANGLE_STRIP);  // Use gl.TRIANGLE_STRIP for the fifth canvas
+
+</script>
+
+</body>
+</html>
