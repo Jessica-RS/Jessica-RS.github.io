@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lab07</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+
+    <canvas id="glCanvas" width="640" height="480"></canvas>
+    <button id="toggleRotation">Toggle Rotation</button>
+
+    <script>
+      const canvas = document.getElementById('glCanvas');
+      const gl = canvas.getContext('webgl');
+
+      if (!gl) {
+        alert('WebGL not supported!');
+        throw new Error('WebGL not supported!');
+      }
+
+      // Define the triangle vertices
+      const vertices = new Float32Array([
+        0.0, 0.5,   // Top vertex
+        -0.5, -0.5, // Bottom-left vertex
+        0.5, -0.5   // Bottom-right vertex
+      ]);
+
+      // Initial color: blue
+      let color = [0.0, 0.0, 1.0, 1.0]; // RGBA (Blue)
+
+      // Shader source (vertex and fragment shaders)
+      const vsSource = `
+        attribute vec4 aVertexPosition;
+        uniform mat4 uRotationMatrix;
+        void main(void) {
+          gl_Position = uRotationMatrix * aVertexPosition;
+        }
+      `;
+
+      const fsSource = `
+        precision mediump float;
+        uniform vec4 uColor;
+        void main(void) {
+          gl_FragColor = uColor;
+        }
+      `;
+
+      // Initialize shaders
+      function initShaderProgram(gl, vsSource, fsSource) {
+        const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+          alert('Unable to initialize the shader program');
+          return null;
+        }
+        return shaderProgram;
+      }
+
+      function loadShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      }
+
+      const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+      const programInfo = {
+        attribLocations: {
+          vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        },
+        uniformLocations: {
+          uColor: gl.getUniformLocation(shaderProgram, 'uColor'),
+          uRotationMatrix: gl.getUniformLocation(shaderProgram, 'uRotationMatrix'),
+        },
+      };
+
+      // Create a buffer for the triangle's positions.
+      const positionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+      let angle = 0;
+      let isRotating = true;
+
+      function drawScene() {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Set up rotation matrix
+        const rad = angle * Math.PI / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        const rotationMatrix = new Float32Array([
+          cos, -sin, 0, 0,
+          sin, cos, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1
+        ]);
+
+        // Use shader program and set uniforms
+        gl.useProgram(shaderProgram);
+        gl.uniformMatrix4fv(programInfo.uniformLocations.uRotationMatrix, false, rotationMatrix);
+        gl.uniform4fv(programInfo.uniformLocations.uColor, color);
+
+        // Bind position buffer and enable attributes
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+        // Draw the triangle
+        gl.drawArrays(gl.TRIANGLES, 0, 4);
+      }
+
+      function animate() {
+        if (isRotating) {
+          angle += 1;
+        }
+        drawScene();
+        requestAnimationFrame(animate);
+      }
+
+      // Toggle rotation when the button is clicked
+      document.getElementById('toggleRotation').addEventListener('click', () => {
+        isRotating = !isRotating;
+      });
+
+      // Handle keypresses
+      window.addEventListener('keydown', (event) => {
+        switch (event.key) {
+          case '1': // Toggle rotation with key "1"
+            isRotating = !isRotating;
+            break;
+          case '2': // Change color to red with key "2"
+            color = [1.0, 0.0, 0.0, 1.0]; // Red
+            break;
+          case '3': // Change color to green with key "3"
+            color = [0.0, 1.0, 0.0, 1.0]; // Green
+            break;
+	  case '4': // Change color to green with key "4"
+            color = [1.0, 0.75, 0.8, 1.0]; 
+            break;
+          default:
+            break;
+        }
+      });
+
+      // Set the canvas clear color and clear it
+      gl.clearColor(1.0, 1.0, 1.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      // Start animation loop
+      animate();
+    </script>
+
+  </body>
+</html>
