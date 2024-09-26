@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas" width="720" height="1080" style="border:1px solid black;">
+Sorry, your browser does not support canvas.
+</canvas>
+
+<script>
+const canvas = document.getElementById('myCanvas');
+const gl = canvas.getContext('webgl');
+
+if (!gl) {
+  console.log('WebGL not supported, falling back on experimental-webgl');
+  gl = canvas.getContext('experimental-webgl');
+}
+
+const vsSource = `
+  attribute vec4 aVertexPosition;
+  varying vec4 vColor;  // Declare a varying variable for color
+
+  void main(void) {
+    gl_Position = aVertexPosition;
+    gl_PointSize = 20.0;  // Set the size of the point
+
+    // Calculate the color based on position
+    vColor = vec4((1.0 + aVertexPosition.xyz) / 2.0, 1.0); // Add alpha component
+  }
+`;
+
+const fsSource = `
+  precision mediump float;  // Specify the precision
+  varying vec4 vColor;  // Receive the color from the vertex shader
+
+  void main(void) {
+    gl_FragColor = vColor;  // Use the varying color
+  }
+`;
+
+// Initialize shader program
+function initShaderProgram(gl, vsSource, fsSource) {
+  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+  // Create shader program
+  const shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
+
+  // Check if shader program was created successfully
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+    return null;
+  }
+  return shaderProgram;
+}
+
+// Function to compile shader
+function loadShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  // Check for errors
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+}
+
+// Initialize the shader program
+const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+const programInfo = {
+  attribLocations: {
+    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+  },
+  program: shaderProgram,
+};
+
+// Set up the positions of the points
+const positions = [
+  0.0,  0.0,    // Center point (Point 1)
+  -0.5, -0.5,   // Bottom-left point (Point 2)
+  0.5,  0.5,    // Point 3
+  0.1, 0.3,     // Point 4
+  -0.5, 0.5,     // Top-right point (Point 5)
+  0.3, 0.8,
+  0.-1, 0.1,
+  0.1, 0.1
+];
+
+// Create buffer
+const positionBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+// Draw the scene
+function drawScene(gl, programInfo) {
+  // Clear the canvas
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // Tell WebGL how to pull out the positions from the position buffer
+  {
+    const numComponents = 2; // Pull out 2 values per iteration (x, y)
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.vertexPosition,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+  }
+
+  // Tell WebGL to use our program when drawing
+  gl.useProgram(programInfo.program);
+
+  // Draw the points
+  {
+    const offset = 0;
+    const vertexCount = 8; // Number of points to draw
+    gl.drawArrays(gl.POINTS, offset, vertexCount);
+  }
+}
+
+// Draw the scene
+drawScene(gl, programInfo);
+</script>
+
+</body>
+</html>
