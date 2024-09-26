@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>HW03</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+
+</head>
+
+<body>
+
+	<canvas id="glCanvas" width="720" height="1080"></canvas>
+	<button id="toggleMorph">Toggle Morph</button>
+
+	<script>
+
+
+// Define vertices for a better "J" shape
+		const jVertices = new Float32Array([
+   0.6, 0.8,    // Top-right
+    0.6, 0.4,    // Moving down
+    0.6, 0.0,
+    0.6, -0.4,
+    0.6, -0.8,  
+    0.2, -0.8,   // Bottom-middle
+    -0.2, -0.8,
+    -0.6, -0.8,			
+		]);
+
+// Define vertices for a better "S" shape
+		const sVertices = new Float32Array([
+	0.5, 0.5,
+	-0.5, 0.5,   // Top-left
+    -0.5, 0.25,  // Left end of top bar
+    0.5, 0.25,   // Right end of top bar
+ 0.5, 0.0,    // Middle-right
+
+    -0.5, 0.0,   // Middle-left
+   
+    0.5, 0.0,  // Right end of middle bar
+    0.5, 0.0, // Left end of middle bar
+    0.5, 0.0,  // Bottom-left
+    0.5, 0.0,   // Bottom-right
+
+		]);
+
+
+
+		const canvas = document.getElementById('glCanvas');
+		const gl = canvas.getContext('webgl');
+
+		if (!gl) {
+			alert('WebGL not supported!');
+			throw new Error('WebGL not supported!');
+		}
+
+  // Vertex shader source
+		const vsSource = `
+			attribute vec2 aVertexPosition;
+			void main(void) {
+				gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+			}
+		`;
+
+        // Fragment shader source
+		const fsSource = `
+			precision mediump float;
+			void main(void) {
+				gl_FragColor = vec4(0.0, 0.5, 0.8, 1.0); // Set color to a blue tone
+			}
+		`;
+
+		
+        // Function to initialize the shader program
+		function initShaderProgram(gl, vsSource, fsSource) {
+			const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+			const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+			const shaderProgram = gl.createProgram();
+			gl.attachShader(shaderProgram, vertexShader);
+			gl.attachShader(shaderProgram, fragmentShader);
+			gl.linkProgram(shaderProgram);
+
+			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+				console.error('Unable to initialize the shader program:', gl.getProgramInfoLog(shaderProgram));
+				return null;
+			}
+
+			return shaderProgram;
+		}
+
+        // Function to load a shader
+		function loadShader(gl, type, source) {
+			const shader = gl.createShader(type);
+			gl.shaderSource(shader, source);
+			gl.compileShader(shader);
+
+			if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+				console.error('An error occurred compiling the shaders:', gl.getShaderInfoLog(shader));
+				gl.deleteShader(shader);
+				return null;
+			}
+
+			return shader;
+		}
+
+        // Initialize shaders
+		const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+		const positionBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+		
+		let t = 0.0;
+		let morphing = false;
+		
+		function morph(t) {
+			const vertices = new Float32Array(jVertices.length);
+			for (let i = 0; i < jVertices.length; i += 2) {
+				vertices[i] = (1 - t) * jVertices[i] + t * sVertices[i];
+				vertices[i + 1] = (1 - t) * jVertices[i + 1] + t * sVertices[i + 1];
+			}
+			return vertices;
+		}
+
+		function drawShape() {
+			gl.clear(gl.COLOR_BUFFER_BIT);
+
+			// Bind the buffer and set up the vertex attributes
+			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+			const vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+			gl.enableVertexAttribArray(vertexPosition);
+			gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
+
+			// Use the shader program
+			gl.useProgram(shaderProgram);
+
+			// Draw the shape
+			gl.drawArrays(gl.LINE_STRIP, 0, jVertices.length / 2);
+		}
+
+		function animate() {
+			if (morphing) {
+				t += 0.01; // Increment t
+				if (t > 1.0) t = 1.0; // Clamp t to 1.0
+			} else {
+				t -= 0.01; // Decrement t
+				if (t < 0.0) t = 0.0; // Clamp t to 0.0
+			}
+
+		const vertices = morph(t);
+    // Update the vertex buffer with new vertices
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    
+    // Draw the shape
+		drawShape();
+		requestAnimationFrame(animate);
+		}
+
+		document.getElementById('toggleMorph').addEventListener('click', () => {
+			morphing = !morphing; // Toggle morphing state
+		});
+
+		gl.clearColor(1.0, 1.0, 1.0, 1.0); // Clear to white
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		animate();
+
+	</script>
+
+
+</body>
+</html>
