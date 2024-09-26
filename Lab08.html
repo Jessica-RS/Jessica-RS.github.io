@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lab 08</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="glCanvas" width="640" height="480"></canvas>
+    <button id="toggleSave">Toggle Save Points</button>
+
+    <script>
+        const canvas = document.getElementById('glCanvas');
+        const gl = canvas.getContext('webgl');
+
+        if (!gl) {
+            alert('WebGL not supported!');
+            throw new Error('WebGL not supported!');
+        }
+
+        // Array to hold point coordinates
+        let points = [];
+        let savePoints = true; // Initially saving points
+
+        // Shader source
+        const vsSource = `
+            attribute vec4 aVertexPosition;
+            void main(void) {
+                gl_Position = aVertexPosition;
+                gl_PointSize = 10.0; // Size of points
+            }
+        `;
+
+        const fsSource = `
+            precision mediump float;
+            void main(void) {
+                gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Color of points (red)
+            }
+        `;
+
+        // Initialize shaders
+        function initShaderProgram(gl, vsSource, fsSource) {
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert('Unable to initialize the shader program');
+                return null;
+            }
+            return shaderProgram;
+        }
+
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+        const positionLocation = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+
+        // Render points
+        function render() {
+            gl.clear(gl.COLOR_BUFFER_BIT); // Clear the canvas
+
+            gl.useProgram(shaderProgram);
+
+            // Create a buffer for the points
+            const pointBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+
+            // Draw the points
+            gl.drawArrays(gl.POINTS, 0, points.length / 2);
+        }
+
+        // Handle mouse clicks
+        canvas.addEventListener('click', (event) => {
+            // Get the canvas coordinates
+            const rect = canvas.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / canvas.width * 2 - 1; // Convert to clip space
+            const y = 1 - (event.clientY - rect.top) / canvas.height * 2; // Convert to clip space
+
+            if (savePoints) {
+                points.push(x, y); // Save the point if toggled on
+                render(); // Render the points
+            }
+        });
+
+        // Toggle save points when the button is clicked
+        document.getElementById('toggleSave').addEventListener('click', () => {
+            savePoints = !savePoints; // Toggle the save state
+            if (!savePoints) {
+                // If not saving points, clear the points array
+                points = [];
+                render(); // Render the cleared state
+            } else {
+                // If saving is enabled, just render the current state
+                render(); // Redraw the existing points
+            }
+        });
+
+        // Set the canvas clear color and clear it
+        gl.clearColor(1.0, 1.0, 1.0, 1.0); // White background
+        render(); // Initial render
+
+    </script>
+
+</body>
+</html>
