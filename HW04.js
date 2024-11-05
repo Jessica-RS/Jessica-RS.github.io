@@ -16,6 +16,10 @@ var axis = 0;
 var theta = [0, 0, 0];
 
 var thetaLoc;
+//var morph = true; added
+
+//var morphFactor = 1.0; // Factor to morph the cube into a rectangle
+//var morphLoc;
 
 var flag = false;
 
@@ -86,8 +90,24 @@ function init()
     };
     document.getElementById("Toggle").onclick = function(){flag = !flag;};
 
+    document.getElementById("Morph").onclick = function(){morph = !morph;};
+
     render();
 }
+/*
+    document.getElementById("Morph").onclick = function(){ morphFactor = morphFactor === 1.0 ? 1.5 : 1.0; updateCube(); };
+
+    render();
+}
+
+function updateCube() {
+    positions = []; // Clear current positions
+    colorCube(); // Recalculate positions with morph
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(positions), gl.STATIC_DRAW);
+}
+
+*/
 
 function colorCube()
 {
