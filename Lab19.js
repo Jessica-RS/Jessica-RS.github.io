@@ -138,7 +138,7 @@ function init()
     document.getElementById("ButtonT").onclick = function(){flag = !flag;};
 
     render();
-};
+}
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
