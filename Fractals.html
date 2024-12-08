@@ -1,54 +1,65 @@
 <!DOCTYPE html>
-<HTML>
+<html>
 
-<HEAD>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<title>Fractals Final Project</title>
+<head>
+  <title>Fractals</title>
+</head>
 
-  
-</HEAD>
-<Body>
-  <canvas id="gl-canvas" width="512" height="512" style="border: 1px solid black;"> 
-Oops ... your browser doesn't support the HTML5 canvas element
-</canvas>
-<div>
-  recursive steps 0 <input id="slider"
-                           type="range"
-                           min="0" max="4" step="1" value="0" />
-  4
-</div>
-//adding the images: Carpet.jpg, Glass.jpg, Wood.jpg, Hair.jpg,
+<body>
+  <button id="Rotation">Toggle Rotation On-Off</button>
 
-<img id = "texImage" src = "Carpet.jpg" hidden></img> 
+  <canvas id="gl-canvas" width="512" height="512"> </canvas>
 
-<button id = "ButtonTexture">Change Texture</button>
-<button id = "Button Zoom">Zoom in</button>
+  <!-- IMAGE -->
+  <img id="texImage" src="Carpet.jpg" hidden></img>
 
-  <script id="vertex-shader"
-          type="x-shader/x-vertex">
-      #version 300 es
-      in vec4 aPosition;
-      void
-      main()
-      {
-      gl_PointSize = 4.0;
+  <script id="vertex-shader" type="x-shader/x-vertex">
+    #version 300 es
+
+    in vec4 aPosition;
+    in vec4 aColor; // added
+    in vec2 aTexCoord; // added
+
+    out vec4 vColor; // added
+    out vec2 vTexCoord; // added
+
+    uniform float uTheta;
+
+    void main() {
+      float s = sin(uTheta);
+      float c = cos(uTheta);
+
+      gl_Position.x = -s * aPosition.y + c * aPosition.x;
+      gl_Position.y = s * aPosition.x + c * aPosition.y;
+      gl_Position.z = 0.0;
+      gl_Position.w = 1.0;
+
+      vColor = aColor; // added
+      vTexCoord = aTexCoord; // added
       gl_Position = aPosition;
-      }
+    }
   </script>
-  <script id="fragment-shader"
-          type="x-shader/x-fragment">
-      #version 300 es
-      precision mediump float;
-      out vec4 fColor;
-      void
-      main()
-      {
-      fColor = vec4(1.0,0.0,0.0,1.0);
-      }
+
+  <script id="fragment-shader" type="x-shader/x-fragment">
+    #version 300 es
+
+    precision mediump float;
+    in vec4 vColor;
+    in vec2 vTexCoord;
+
+    out vec4 fColor;
+
+    uniform sampler2D uTextureMap;
+
+    void main() {
+      fColor = vColor * texture(uTextureMap, vTexCoord);
+    }
   </script>
-  <script type="text/javascript" src="Common/initShaders.js"></script>
-  <script type="text/javascript" src="Common/MVnew.js"></script>
-  <script type="text/javascript" src="Common/utility.js"></script>
-  <script type="text/javascript" src="Fractals.js"></script>
-</BODY>
-</HTML>
+
+  <script src="initShaders.js"></script>
+  <script src="MVnew.js"></script>
+  <script src="Fractals.js"></script>
+
+</body>
+
+</html>
