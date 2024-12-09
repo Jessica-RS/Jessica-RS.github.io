@@ -92,7 +92,7 @@ Canvas.prototype = {
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(this.colors), gl.DYNAMIC_DRAW);
         } else {
-            var texCoords = document.getElementById("Image");//added
+            var texCoords = document.getElementById("texImage");//added
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordBuffer);
             // Add the texture coordinates (dummy for now, can be adjusted)
             var texCoords = [
@@ -198,7 +198,7 @@ Canvas.prototype = {
     
   // Switch between color and texture mode
     switchToImage: function () {
-        this.colorMode = !this.colorMode; // Toggle between color and texture mode
+        this.colorMode = !this.texCoords; // Toggle between color and texture mode
         this.RestartList();
     }
 };
