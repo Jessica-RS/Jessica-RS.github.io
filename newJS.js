@@ -63,7 +63,7 @@ Canvas.prototype = {
     Init: function () {
         this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.RestartList();
-        var texCoords = document.getElementById("image");
+        //var texCoords = document.getElementById("image");
         //this.loadTexture();//load the texture
     },
 
@@ -92,7 +92,7 @@ Canvas.prototype = {
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(this.colors), gl.DYNAMIC_DRAW);
         } else {
-            var texCoords = document.getElementById("texImage");//added
+            var texCoords = document.getElementById("Image");//added
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordBuffer);
             // Add the texture coordinates (dummy for now, can be adjusted)
             var texCoords = [
