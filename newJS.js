@@ -1,12 +1,14 @@
 function Canvas(width, height, locID) {
+    console.log("Function canvas loaded");
     // Initialization of the canvas and WebGL context
     if (width == undefined || width < 0) {
-        width = 300;
+        width = 500;
     }
     if (height == undefined || height < 0) {
-        height = 300;
+        height = 500;
     }
     var canvas = document.createElement('canvas')
+    
     canvas.height = height;
     canvas.width = width;
     if (locID == undefined) {
@@ -19,11 +21,10 @@ function Canvas(width, height, locID) {
             div.appendChild(canvas);
         }
     }
-    console.log("Function Canvas loaded");
     document.body.appendChild(canvas);
     this.height = height;
     this.width = width;
-    // WebGL context setup
+    // new stuff
     var gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) {
         alert("WebGL isn't available");
@@ -32,12 +33,14 @@ function Canvas(width, height, locID) {
     gl.viewport(0, 0, width, height);
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
+
     // Buffers and attributes setup for vertices and colors (or texture coordinates)
     this.vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
     vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
+
     // A buffer for the colors/texture coordinates
     this.cBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cBuffer);
@@ -49,6 +52,7 @@ function Canvas(width, height, locID) {
     texCoordAttribute = gl.getAttribLocation(program, "vTexCoord");
     gl.vertexAttribPointer(texCoordAttribute, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(texCoordAttribute);
+    
     // This will hold the mode (color or texture)
     this.colorMode = true; // true for color, false for texture
     this.maxDepth = 1;
@@ -60,40 +64,31 @@ Canvas.prototype = {
         this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.RestartList();
     },
-
     RestartList: function () {
         this.currentDepth = 1;
-
         var p1 = vec2(-0.8, -0.8);
         var p2 = vec2(0, .8);
         var p3 = vec2(0.8, -0.8);
-
         this.vertex = [p1, p2, p3];
-
         var c1 = vec3(Math.random(), Math.random(), Math.random());
         var c2 = vec3(Math.random(), Math.random(), Math.random());
         var c3 = vec3(Math.random(), Math.random(), Math.random());
-
         this.colors = [c1, c2, c3];
-
         this.MakePoints();
-
         this.UpdateBuffers();
         this.Redisplay();
     },
-
     UpdateBuffers: function () {
         gl = this.gl;
-
         // change the vertex data
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(this.vertex), gl.DYNAMIC_DRAW);
-
         // change the color data or texture coordinates
         if (this.colorMode) {
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(this.colors), gl.DYNAMIC_DRAW);
         } else {
+            var texCoords = document.getElementById("texImage");//added
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordBuffer);
             // Add the texture coordinates (dummy for now, can be adjusted)
             var texCoords = [
@@ -104,6 +99,9 @@ Canvas.prototype = {
             gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.DYNAMIC_DRAW);
         }
     },
+    GetDepth: function () {
+        return this.maxDepth;
+    },
 
     GetDepth: function () {
         return this.maxDepth;
@@ -111,17 +109,14 @@ Canvas.prototype = {
 
     ChangeDepth: function (newDepth) {
         var depth = parseInt(newDepth);
-
         if (depth < 1) {
             alert("depth must be positive");
             return;
         }
-
         if (depth > 10) {
             alert("Depth has a max value of 10");
             depth = 10;
         }
-
         if (depth < this.maxDepth) {
             this.maxDepth = depth;
             this.RestartList();
@@ -187,12 +182,17 @@ Canvas.prototype = {
     },
 
     Redisplay: function () {
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.vertex.length);
-        return;
+        const gl = this.gl;
+        const modeLocation = gl.getUniformLocation(program, "mode");
+        gl.uniform1i(modeLocation, this.colorMode ? 0 : 1); // 0 for color, 1 for texture
+    
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, this.vertex.length);
     },
 
-    // Switch between color and texture mode
+
+    
+  // Switch between color and texture mode
     switchToImage: function () {
         this.colorMode = !this.colorMode; // Toggle between color and texture mode
         this.RestartList();
