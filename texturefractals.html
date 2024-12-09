@@ -3,8 +3,10 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>Fractals Final Project</title>
-    
-    <img id = "texImage" src = "Carpet.jpg" hidden></img> <!--added-->
+    <!--Shaders taken from previous labs-->
+   
+    <img id = "texImage" src = "Carpet.jpg" hidden></img>
+    <script src="newJS.js"></script>
 
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec4 vPosition;
@@ -32,10 +34,10 @@
         }
     </script>
 
-    <script type="text/javascript" src="./Common/webgl-utils.js"></script>
-    <script type="text/javascript" src=./Common/initShaders.js></script>
-    <script type="text/javascript" src="./Common/MV.js"></script>
-    <script type="text/javascript" src="./newJS.js"></script>
+    <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="initShaders.js"></script>
+    <script type="text/javascript" src="MV.js"></script>
+    <script type="text/javascript" src="newJS.js"></script>
 
     <style>
         input {
@@ -52,24 +54,21 @@
 </head>
 
 <body>
-    <h1>A Sierpinski Gasket With Triangles</h1>
-
+    <h2>Sierpinski Gasket</h2>
     <script>
         var WIDTH = 500;
         var HEIGHT = 500;
         var canvas;
-
+        console.log("Event Listener Loaded");
         window.addEventListener("load", function(event) {
             // Initialize the canvas once the window is loaded
             canvas = new Canvas(WIDTH, HEIGHT);
             document.getElementById('DepthBox').value = canvas.GetDepth();
-
             // Ensure that the button correctly references the canvas object
             document.getElementById('useImage').addEventListener('click', function() {
                 canvas.switchToImage(); // Toggle between color and texture
             });
         });
-
     </script>
 
     <p>
@@ -83,7 +82,8 @@
             id="DepthBox" onchange="canvas.ChangeDepth(this.value)">
     </p>
 
-    <!-- Button to switch between color and image texture -->
+    <!-- Button to switch between color and image texture 
+     Not currently working-->
     <button id="useImage">Switch to Texture/Color</button>
 
 </body>
