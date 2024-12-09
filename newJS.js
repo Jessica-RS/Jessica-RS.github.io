@@ -92,7 +92,7 @@ Canvas.prototype = {
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(this.colors), gl.DYNAMIC_DRAW);
         } else {
-            var texCoords = document.getElementById("texImage");//added
+            var texCoords = document.getElementById("Image");//added
             gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordBuffer);
             // Add the texture coordinates (dummy for now, can be adjusted)
             var texCoords = [
@@ -107,10 +107,7 @@ Canvas.prototype = {
         return this.maxDepth;
     },
 
-    GetDepth: function () {
-        return this.maxDepth;
-    },
-
+    
     ChangeDepth: function (newDepth) {
         var depth = parseInt(newDepth);
         if (depth < 1) {
@@ -186,19 +183,21 @@ Canvas.prototype = {
     },
 
     Redisplay: function () {
-        const gl = this.gl;
-        const modeLocation = gl.getUniformLocation(program, "mode");
+        const gl = this.gl;//added
+        const modeLocation = gl.getUniformLocation(program, "mode");//added
         gl.uniform1i(modeLocation, this.colorMode ? 0 : 1); // 0 for color, 1 for texture
     
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, this.vertex.length);
+
+        return;
     },
 
 
     
   // Switch between color and texture mode
     switchToImage: function () {
-        this.colorMode = !this.texCoords; // Toggle between color and texture mode
+        this.colorMode = !this.colorMode; // Toggle between color and texture mode
         this.RestartList();
     }
 };
