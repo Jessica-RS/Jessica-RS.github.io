@@ -3,15 +3,12 @@ function Canvas(width, height, locID) {
     if (width == undefined || width < 0) {
         width = 300;
     }
-
     if (height == undefined || height < 0) {
         height = 300;
     }
-
     var canvas = document.createElement('canvas')
     canvas.height = height;
     canvas.width = width;
-
     if (locID == undefined) {
         document.body.appendChild(canvas);
     } else {
@@ -22,57 +19,42 @@ function Canvas(width, height, locID) {
             div.appendChild(canvas);
         }
     }
-
+    console.log("Function Canvas loaded");
     document.body.appendChild(canvas);
-
     this.height = height;
     this.width = width;
-
-    // new stuff
+    // WebGL context setup
     var gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) {
         alert("WebGL isn't available");
     }
-
     this.gl = gl;
-
     gl.viewport(0, 0, width, height);
-
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
-
     // Buffers and attributes setup for vertices and colors (or texture coordinates)
     this.vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
-
     vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
-
     // A buffer for the colors/texture coordinates
     this.cBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cBuffer);
-
     colorAttribute = gl.getAttribLocation(program, "vColor");
     gl.vertexAttribPointer(colorAttribute, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(colorAttribute);
-
     this.textureCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
-
     texCoordAttribute = gl.getAttribLocation(program, "vTexCoord");
     gl.vertexAttribPointer(texCoordAttribute, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(texCoordAttribute);
-
     // This will hold the mode (color or texture)
     this.colorMode = true; // true for color, false for texture
-
     this.maxDepth = 1;
     this.Init();
-
     return this;
 }
-
 Canvas.prototype = {
     Init: function () {
         this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
