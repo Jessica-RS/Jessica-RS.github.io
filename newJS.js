@@ -63,56 +63,10 @@ Canvas.prototype = {
     Init: function () {
         this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.RestartList();
-        this.loadTexture();//load the texture
+        var texCoords = document.getElementById("image");
+        //this.loadTexture();//load the texture
     },
 
-     // Create and bind the texture
-     this.texture = gl.createTexture();
-     gl.bindTexture(gl.TEXTURE_2D, this.texture);
-
-     // Set default parameters for the texture
-     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-     // Define the texture image loading function
-     texImage.onload = function() {
-         gl.bindTexture(gl.TEXTURE_2D, this.texture);
-         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texImage);
-         gl.generateMipmap(gl.TEXTURE_2D);  // Optionally generate mipmaps
-     };
-
-     texImage.src = texImage.src;  // Ensure the image is reloaded
- },
-
- UpdateBuffers: function () {
-     var gl = this.gl;
-     gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
-     gl.bufferData(gl.ARRAY_BUFFER, flatten(this.vertex), gl.DYNAMIC_DRAW());
-
-     // Update buffer for color or texture coordinates
-     if (this.colorMode) {
-         gl.bindBuffer(gl.ARRAY_BUFFER, this.cBuffer);
-         gl.bufferData(gl.ARRAY_BUFFER, flatten(this.colors), gl.DYNAMIC_DRAW());
-     } else {
-         var texCoords = [
-             vec2(0, 0),
-             vec2(1, 0),
-             vec2(0, 1)
-         ];
-         gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
-         gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.DYNAMIC_DRAW());
-     }
- },
-
- switchToImage: function () {
-     this.colorMode = !this.colorMode;  // Toggle mode between color and texture
-     this.RestartList();  // Restart the shape rendering
-     this.UpdateBuffers();  // Ensure buffers are updated
-     this.Redisplay();
- }
-};
 
     RestartList: function () {
         this.currentDepth = 1;
